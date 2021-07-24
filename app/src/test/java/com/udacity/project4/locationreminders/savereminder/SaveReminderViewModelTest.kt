@@ -29,7 +29,7 @@ class SaveReminderViewModelTest {
 
     //TODO: provide testing to the SaveReminderView and its live data objects
     private lateinit var saveReminderViewModel: SaveReminderViewModel
-    private lateinit var fakeDataSource: FakeDataSource
+    private lateinit var fakeSource: FakeDataSource
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -38,23 +38,23 @@ class SaveReminderViewModelTest {
     var mainCoroutineRule = CoroutineRule()
 
     @Before
-    fun setup() {
+    fun initialize() {
         stopKoin()
         val remindersList = mutableListOf<ReminderDTO>()
         for (i in (1..10)) {
             val reminderDTO = ReminderDTO(
-                "Title$i",
-                "Description$i",
-                "Location$i",
-                36.76,
-                36.76
+                "TitleOf$i",
+                "DescriptionOf$i",
+                "LocationOf$i",
+                20.21,
+                20.21
             )
             remindersList.add(reminderDTO)
         }
 
-        fakeDataSource = FakeDataSource(remindersList)
+        fakeSource = FakeDataSource(remindersList)
         saveReminderViewModel =
-            SaveReminderViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
+            SaveReminderViewModel(ApplicationProvider.getApplicationContext(), fakeSource)
 
     }
 
@@ -90,19 +90,19 @@ class SaveReminderViewModelTest {
     }
 
     @Test
-    fun saveReminder_equalToDataSource() = mainCoroutineRule.runBlockingTest {
+    fun saveReminder_compareWithDataSource() = mainCoroutineRule.runBlockingTest {
 
-        fakeDataSource.deleteAllReminders()
+        fakeSource.deleteAllReminders()
 
         val reminder = ReminderDataItem(
-            "Title",
-            "Description",
-            "Location",
-            36.79,
-            37.45
+            "TitleOfu",
+            "DescriptionOfu",
+            "LocationOfu",
+            20.22,
+            20.22
         )
         saveReminderViewModel.saveReminder(reminder)
-        val reminderFromDataSource = (fakeDataSource.getReminders() as Result.Success).data
+        val reminderFromDataSource = (fakeSource.getReminders() as Result.Success).data
         MatcherAssert.assertThat(
             reminder.title,
             CoreMatchers.equalTo(reminderFromDataSource[0].title)
@@ -113,11 +113,11 @@ class SaveReminderViewModelTest {
     fun saveReminder_loading() = mainCoroutineRule.runBlockingTest {
 
         val reminder = ReminderDataItem(
-            "Title",
-            "Description",
-            "Location",
-            36.79,
-            37.45
+            "TitleOf",
+            "DescriptionOf",
+            "LocationOf",
+            20.21,
+            20.22
         )
         mainCoroutineRule.pauseDispatcher()
         saveReminderViewModel.saveReminder(reminder)
@@ -134,14 +134,14 @@ class SaveReminderViewModelTest {
     }
 
     @Test
-    fun saveReminder_toastMessage() = mainCoroutineRule.runBlockingTest {
+    fun saveReminder_testToastMessage() = mainCoroutineRule.runBlockingTest {
 
         val reminder = ReminderDataItem(
-            "Title",
-            "Description",
-            "Location",
-            36.79,
-            37.45
+            "TitleOf",
+            "DescriptionOf",
+            "LocationOf",
+            20.21,
+            20.21
         )
 
         saveReminderViewModel.saveReminder(reminder)

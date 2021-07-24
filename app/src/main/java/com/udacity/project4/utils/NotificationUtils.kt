@@ -13,8 +13,7 @@ import com.udacity.project4.R
 import com.udacity.project4.locationreminders.ReminderDescriptionActivity
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 
-private const val NOTIFICATION_CHANNEL_ID = BuildConfig.APPLICATION_ID + ".channel"
-private const val NOTIFICATION_ID = 33
+
 
 fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
     val notificationManager = context
@@ -22,11 +21,11 @@ fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
 
     // We need to create a NotificationChannel associated with our CHANNEL_ID before sending a notification.
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
-        && notificationManager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) == null
+        && notificationManager.getNotificationChannel(CHANNEL_ID) == null
     ) {
         val name = context.getString(R.string.app_name)
         val channel = NotificationChannel(
-            NOTIFICATION_CHANNEL_ID,
+            CHANNEL_ID,
             name,
             NotificationManager.IMPORTANCE_DEFAULT
         )
@@ -43,7 +42,7 @@ fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
         .getPendingIntent(getUniqueId(), PendingIntent.FLAG_UPDATE_CURRENT)
 
 //    build the notification object with the data to be shown
-    val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+    val notification = NotificationCompat.Builder(context, CHANNEL_ID)
         .setSmallIcon(R.mipmap.ic_launcher)
         .setContentTitle(reminderDataItem.title)
         .setContentText(reminderDataItem.location)
@@ -54,10 +53,10 @@ fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
     notificationManager.notify(getUniqueId(), notification)
 }
 
-fun createChannel(context: Context) {
+fun createNotifChannel(context: Context) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val notificationChannel = NotificationChannel(
-            NOTIFICATION_CHANNEL_ID,
+            CHANNEL_ID,
             context.getString(R.string.channel_name),
 
             NotificationManager.IMPORTANCE_HIGH
@@ -66,8 +65,6 @@ fun createChannel(context: Context) {
                 setShowBadge(false)
             }
 
-        notificationChannel.enableLights(true)
-        notificationChannel.lightColor = Color.RED
         notificationChannel.enableVibration(true)
         notificationChannel.description = context.getString(R.string.notification_channel_description)
 

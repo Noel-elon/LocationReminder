@@ -16,9 +16,6 @@ import android.content.Intent
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
-    companion object {
-        const val ACTION_GEOFENCE_EVENT = "com.udacity.project4.locationreminders.geofence.ACTION_GEOFENCE_EVENT"
-    }
     override fun onReceive(context: Context, intent: Intent) {
 
 //TODO: implement the onReceive method to receive the geofencing events at the background

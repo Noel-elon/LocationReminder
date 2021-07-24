@@ -23,8 +23,8 @@ import org.koin.core.context.stopKoin
 class RemindersListViewModelTest {
 
     //TODO: provide testing to the RemindersListViewModel and its live data objects
-    private lateinit var remindersListViewModel: RemindersListViewModel
-    private lateinit var fakeDataSource: FakeDataSource
+    private lateinit var viewModel: RemindersListViewModel
+    private lateinit var fakeSource: FakeDataSource
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -33,43 +33,40 @@ class RemindersListViewModelTest {
     val mainCoroutineRule = CoroutineRule()
 
     @Before
-    fun setup() {
+    fun initializeReminders() {
         stopKoin()
         val remindersList = mutableListOf<ReminderDTO>()
         for(i in (1 ..10)){
             val reminderDTO = ReminderDTO(
-                "Title$i",
-                "Description$i",
-                "Location$i",
-                36.76,
-                36.76
+                "TitleOf$i",
+                "DescriptionOf$i",
+                "LocationOf$i",
+                20.21,
+                20.21
             )
             remindersList.add(reminderDTO)
         }
 
-        fakeDataSource = FakeDataSource(remindersList)
-        remindersListViewModel =
-            RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
+        fakeSource = FakeDataSource(remindersList)
+        viewModel =
+            RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeSource)
     }
 
     @Test
     fun loadReminder_checkNotNull() {
-        // GIVEN
-        remindersListViewModel.loadReminders()
+        viewModel.loadReminders()
 
-        // WHEN
-        val viewModelList = remindersListViewModel.remindersList.getOrAwaitValue()
+        val viewModelList = viewModel.remindersList.getOrAwaitValue()
 
-        // THEN
         MatcherAssert.assertThat(viewModelList, CoreMatchers.not(CoreMatchers.nullValue()))
     }
 
     @Test
-    fun loadReminder_compareViewmodelWithDatasourceReminders() = mainCoroutineRule.runBlockingTest {
+    fun loadReminder_compareReminders() = mainCoroutineRule.runBlockingTest {
 
-        remindersListViewModel.loadReminders()
-        val reminderFromViewModel = remindersListViewModel.remindersList.getOrAwaitValue()
-        val reminderFromDataSource = (fakeDataSource.getReminders() as Result.Success).data
+        viewModel.loadReminders()
+        val reminderFromViewModel = viewModel.remindersList.getOrAwaitValue()
+        val reminderFromDataSource = (fakeSource.getReminders() as Result.Success).data
 
         MatcherAssert.assertThat(
             reminderFromViewModel[0].id,
@@ -99,31 +96,29 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun loadReminder_loading() {
+    fun loadReminder_isLoading() {
         mainCoroutineRule.pauseDispatcher()
 
-        remindersListViewModel.loadReminders()
+        viewModel.loadReminders()
         MatcherAssert.assertThat(
-            remindersListViewModel.showLoading.getOrAwaitValue(),
+            viewModel.showLoading.getOrAwaitValue(),
             CoreMatchers.`is`(true)
         )
 
         mainCoroutineRule.resumeDispatcher()
         MatcherAssert.assertThat(
-            remindersListViewModel.showLoading.getOrAwaitValue(),
+            viewModel.showLoading.getOrAwaitValue(),
             CoreMatchers.`is`(false)
         )
     }
 
     @Test
-    fun loadReminder_whenUnavaibleOrEmpty() {
-        fakeDataSource.shouldReturnError = true
-
-        remindersListViewModel.loadReminders()
-
+    fun loadReminder_ifEmpty() {
+        fakeSource.isError = true
+        viewModel.loadReminders()
         MatcherAssert.assertThat(
-            remindersListViewModel.showSnackBar.getOrAwaitValue(),
-            CoreMatchers.`is`("Reminders not found")
+            viewModel.showSnackBar.getOrAwaitValue(),
+            CoreMatchers.`is`("No reminders found")
         )
     }
 

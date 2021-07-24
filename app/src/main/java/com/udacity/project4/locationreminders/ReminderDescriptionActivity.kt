@@ -39,8 +39,8 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         reminder = intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem
         binding.reminderDataItem = reminder
         binding.lifecycleOwner = this
-//
-////        TODO: Add the implementation of the reminder details
+
+
         binding.viewMoreBtn.setOnClickListener {
             val intent = Intent(applicationContext, AuthenticationActivity::class.java)
             startActivity(intent)
