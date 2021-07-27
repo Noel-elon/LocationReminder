@@ -37,7 +37,7 @@ class SaveReminderFragment : BaseFragment() {
     private lateinit var binding: FragmentSaveReminderBinding
     private lateinit var geofencingClient: GeofencingClient
     private val qOrLater =
-        Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -90,10 +90,10 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    @SuppressLint("MissingPermission")
+
     fun startGeofence(
         reminder: ReminderDataItem,
-        radius: Float = 150f,
+        radius: Float = 100f,
         timeout: Long = TimeUnit.HOURS.toMillis(1)
     ) {
         val geofence = Geofence.Builder()
@@ -116,6 +116,8 @@ class SaveReminderFragment : BaseFragment() {
             requireActivity(),
             GeofenceBroadcastReceiver::class.java
         )
+
+        intent.action = ACTION_GEOFENCE_EVENT
         val geofencePendingIntent = PendingIntent.getBroadcast(
             requireContext(),
             0,
@@ -123,6 +125,32 @@ class SaveReminderFragment : BaseFragment() {
             PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            _viewModel.showToast.value = "No Permission given"
+            return
+        }
+
+        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+                    addOnSuccessListener {
+                        _viewModel.showToast.value = "Geofence Added"
+                    }
+                    addOnFailureListener {
+                        _viewModel.showToast.value = "Geofence failed: ${it.message}"
+
+                    }
+                }
+            }
+
+            addOnFailureListener {
+                _viewModel.showToast.value = "Removing failed: ${it.message}"
+            }
+        }
 
     }
 
@@ -208,8 +236,8 @@ class SaveReminderFragment : BaseFragment() {
 
                 }
             } else {
-              requireContext().showToast("Enable Location Services Please")
-                    checkDeviceLocationSettings()
+                requireContext().showToast("Enable Location Services Please")
+                checkDeviceLocationSettings()
 
             }
         }
