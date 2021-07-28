@@ -129,8 +129,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             )
             map.isMyLocationEnabled = true
         } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
+            requestPermissions(
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 LOCATION_PERMISSION_CODE
             )
@@ -186,16 +185,20 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     )
                     map.isMyLocationEnabled = true
                 } else {
-                    ActivityCompat.requestPermissions(
-                        requireActivity(),
+                    requestPermissions(
                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                         LOCATION_PERMISSION_CODE
                     )
                 }
+            } else {
+                requestPermissions(
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                    LOCATION_PERMISSION_CODE
+                )
+                _viewModel.showSnackBar.postValue("Grant location permission please")
             }
         }
     }
-
 
 
 }
