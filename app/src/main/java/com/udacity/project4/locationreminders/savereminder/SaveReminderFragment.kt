@@ -64,8 +64,10 @@ class SaveReminderFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
         binding.selectLocation.setOnClickListener {
-            //            Navigate to another fragment to get the user location
-            tryPermissionRequest()
+            // Navigate to another fragment to get the user location
+           // tryPermissionRequest()
+            _viewModel.navigationCommand.value =
+                NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
 
         }
 
@@ -82,11 +84,11 @@ class SaveReminderFragment : BaseFragment() {
 
             val reminder = ReminderDataItem(title, description, location, latitude, longitude)
             if (onPermissionApproved()) {
-                if (_viewModel.validateEnteredData(reminder)) {
-                    _viewModel.saveReminder(reminder)
-                    startGeofence(reminder)
-                }
-
+                checkDeviceLocationSettings()
+//                if (_viewModel.validateEnteredData(reminder)) {
+//                    _viewModel.saveReminder(reminder)
+//                    startGeofence(reminder)
+//                }
 
             } else {
                 tryPermissionRequest()
@@ -172,7 +174,7 @@ class SaveReminderFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun tryPermissionRequest() {
         if (onPermissionApproved()) {
-          //  checkDeviceLocationSettings()
+            checkDeviceLocationSettings()
             return
         }
 
@@ -241,9 +243,19 @@ class SaveReminderFragment : BaseFragment() {
 
         locationSettingsResponseTask.addOnCompleteListener {
             if (it.isSuccessful) {
-                deviceLocationEnabled = true
-                _viewModel.navigationCommand.value =
-                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
+                val title = _viewModel.reminderTitle.value
+                val description = _viewModel.reminderDescription.value
+                val location = _viewModel.reminderSelectedLocationStr.value
+                val latitude = _viewModel.latitude.value
+                val longitude = _viewModel.longitude.value
+
+
+                val reminder = ReminderDataItem(title, description, location, latitude, longitude)
+                if (_viewModel.validateEnteredData(reminder)) {
+                    _viewModel.saveReminder(reminder)
+                    startGeofence(reminder)
+                }
+              //  deviceLocationEnabled = true
             }
         }
     }

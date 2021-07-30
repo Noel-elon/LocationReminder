@@ -29,9 +29,12 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
+import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.LOCATION_PERMISSION_CODE
+import com.udacity.project4.utils.TURN_DEVICE_LOCATION_ON_CODE
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
+import com.udacity.project4.utils.showToast
 import org.koin.android.ext.android.inject
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
@@ -81,9 +84,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
         _viewModel.navigationCommand.value = NavigationCommand.Back
     }
 
@@ -208,11 +208,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         Manifest.permission.ACCESS_FINE_LOCATION
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
+                    checkDeviceLocationSettings()
                     locationProviderClient.requestLocationUpdates(
                         LocationRequest(), callback, Looper.myLooper()
                     )
                     map.isMyLocationEnabled = true
                 } else {
+                    checkDeviceLocationSettings()
                     requestPermissions(
                         arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                         LOCATION_PERMISSION_CODE
@@ -234,6 +236,46 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             )
         } catch (e: Exception) {
             Log.d("Not Found", e.message!!)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_LOW_POWER
+        }
+        val locationSettingsRequest = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+            .build()
+
+        val settingsClient = LocationServices.getSettingsClient(requireContext())
+        val locationSettingsResponseTask = settingsClient
+            .checkLocationSettings(locationSettingsRequest)
+
+        locationSettingsResponseTask.addOnFailureListener { ex ->
+            if (ex is ResolvableApiException && resolve) {
+                try {
+                    this.startIntentSenderForResult(
+                        ex.resolution.intentSender,
+                        TURN_DEVICE_LOCATION_ON_CODE, null, 0, 0, 0, null
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+
+                }
+            } else {
+                requireContext().showToast("Enable Location Services Please")
+                checkDeviceLocationSettings()
+
+            }
+        }
+
+        locationSettingsResponseTask.addOnCompleteListener {
+            if (it.isSuccessful) {
+                locationProviderClient.requestLocationUpdates(
+                    LocationRequest(), callback, Looper.myLooper()
+                )
+                map.isMyLocationEnabled = true
+            }
         }
     }
 
