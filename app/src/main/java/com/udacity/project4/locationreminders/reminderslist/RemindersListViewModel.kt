@@ -54,7 +54,9 @@ class RemindersListViewModel(
     /**
      * Inform the user that there's not any data if the remindersList is empty
      */
-    private fun invalidateShowNoData() {
-        showNoData.value = remindersList.value == null || remindersList.value!!.isEmpty()
+    fun invalidateShowNoData() {
+        viewModelScope.launch {
+            showNoData.value = remindersList.value == null || remindersList.value!!.isEmpty()
+        }
     }
 }

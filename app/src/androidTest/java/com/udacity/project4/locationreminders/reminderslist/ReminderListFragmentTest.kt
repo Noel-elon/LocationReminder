@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
+import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.action.ViewActions
@@ -13,13 +14,19 @@ import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
+import com.udacity.project4.util.FakeDataSource
+import com.udacity.project4.util.atPosition
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -38,11 +45,12 @@ import org.mockito.Mockito
 @LargeTest
 class ReminderListFragmentTest : AutoCloseKoinTest() {
 
-//    TODO: test the navigation of the fragments.
+    //    TODO: test the navigation of the fragments.
 //    TODO: test the displayed data on the UI.
 //    TODO: add testing for the error messages.
 private lateinit var repo: ReminderDataSource
     private lateinit var context: Application
+    private lateinit var viewModel: RemindersListViewModel
 
 
     private val reminder = ReminderDTO(
@@ -52,6 +60,7 @@ private lateinit var repo: ReminderDataSource
         20.21,
         20.21
     )
+
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
      * at this step we will initialize Koin related code to be able to use it in out testing.
@@ -138,12 +147,28 @@ private lateinit var repo: ReminderDataSource
 
         launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
-        Espresso.onView(ViewMatchers.withText(reminder.title))
-            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
-        Espresso.onView(ViewMatchers.withText(reminder.description))
-            .check(ViewAssertions.matches(ViewMatchers.isDisplayed()))
+        Espresso.onView(ViewMatchers.withId(R.id.reminderssRecyclerView))
+            .check(
+                ViewAssertions.matches(
+                    atPosition(
+                        0,
+                        ViewMatchers.hasDescendant(ViewMatchers.withText(reminder.title))
+                    )
+                )
+            )
+        Espresso.onView(ViewMatchers.withId(R.id.reminderssRecyclerView))
+            .check(
+                ViewAssertions.matches(
+                    atPosition(
+                        0,
+                        ViewMatchers.hasDescendant(ViewMatchers.withText(reminder.description))
+                    )
+                )
+            )
 
     }
+
+
 
 
 }

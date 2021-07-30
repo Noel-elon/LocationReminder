@@ -70,7 +70,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 //        TODO: call this function after the user confirms on the selected location
 
         binding.saveLocationButton.setOnClickListener {
-            if (_viewModel.selectedPOI.value != null)
+            if (_viewModel.latitude.value != null)
                 onLocationSelected()
             else {
                 _viewModel.showSnackBar.postValue("Choose a location")
@@ -134,16 +134,44 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 LOCATION_PERMISSION_CODE
             )
         }
+        setMapStyle(map)
         poiClicked(map)
+        onMapLongClicked(map)
     }
 
     private fun poiClicked(map: GoogleMap) {
         map.setOnPoiClickListener {
-            _viewModel.saveLocationDetails(it)
+            _viewModel.saveLocationDetails(
+                lat = it.latLng.latitude,
+                lon = it.latLng.longitude,
+                name = it.name,
+                poi = it
+            )
             map.clear()
             val markerOptions = MarkerOptions()
             markerOptions.position(it.latLng)
             markerOptions.title(it.name)
+            markerOptions.icon(
+                BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
+            )
+            currentMarker = map.addMarker(markerOptions)
+        }
+    }
+
+    private fun onMapLongClicked(map: GoogleMap) {
+        map.setOnMapLongClickListener { latlon ->
+            _viewModel.saveLocationDetails(
+                lat = latlon.latitude,
+                lon = latlon.longitude,
+                name = "Selected Position",
+                poi = null
+            )
+            map.clear()
+            map.clear()
+            val markerOptions = MarkerOptions()
+            markerOptions.position(latlon)
+            markerOptions.title("Selected Position")
             markerOptions.icon(
                 BitmapDescriptorFactory
                     .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
@@ -191,12 +219,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     )
                 }
             } else {
-                requestPermissions(
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                    LOCATION_PERMISSION_CODE
-                )
                 _viewModel.showSnackBar.postValue("Grant location permission please")
             }
+        }
+    }
+
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            )
+        } catch (e: Exception) {
+            Log.d("Not Found", e.message!!)
         }
     }
 

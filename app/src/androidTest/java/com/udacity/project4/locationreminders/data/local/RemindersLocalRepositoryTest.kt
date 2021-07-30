@@ -63,7 +63,8 @@ private lateinit var db: RemindersDatabase
     }
 
     @Test
-    fun compareDataToRepo() = runBlocking {
+    fun compareDataToRepo() =
+        runBlocking {
         repo.saveReminder(reminder)
 
         val loaded = (repo.getReminder(reminder.id) as Result.Success).data
@@ -76,6 +77,15 @@ private lateinit var db: RemindersDatabase
         assertThat(loaded.location, `is`(reminder.location))
 
     }
+
+    @Test
+    fun checkReminderNotFound() =
+        runBlocking {
+            repo.saveReminder(reminder)
+            val message = (repo.getReminder("noel") as Result.Error).message
+            assertThat(message, `is`("Reminder not found!"))
+
+        }
 
 
     @After

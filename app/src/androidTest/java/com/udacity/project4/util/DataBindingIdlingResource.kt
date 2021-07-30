@@ -16,14 +16,20 @@
 package com.udacity.project4.util
 
 import android.view.View
+import androidx.annotation.NonNull
 import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.testing.FragmentScenario
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.IdlingResource
-import java.util.UUID
+import androidx.test.espresso.matcher.BoundedMatcher
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+import java.util.*
+
 
 /**
  * An espresso idling resource implementation that reports idle status for all data binding
@@ -107,5 +113,22 @@ fun DataBindingIdlingResource.monitorActivity(
 fun DataBindingIdlingResource.monitorFragment(fragmentScenario: FragmentScenario<out Fragment>) {
     fragmentScenario.onFragment {
         this.activity = it.requireActivity()
+    }
+}
+
+fun atPosition(position: Int, @NonNull itemMatcher: Matcher<View?>): Matcher<View?>? {
+    checkNotNull(itemMatcher)
+    return object : BoundedMatcher<View?, RecyclerView>(RecyclerView::class.java) {
+        override fun describeTo(description: Description) {
+            description.appendText("has item at position $position: ")
+            itemMatcher.describeTo(description)
+        }
+
+        override fun matchesSafely(view: RecyclerView): Boolean {
+            val viewHolder = view.findViewHolderForAdapterPosition(position)
+                ?: // has no item on such position
+                return false
+            return itemMatcher.matches(viewHolder.itemView)
+        }
     }
 }
