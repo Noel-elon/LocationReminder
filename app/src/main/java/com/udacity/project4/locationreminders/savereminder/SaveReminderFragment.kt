@@ -208,7 +208,7 @@ class SaveReminderFragment : BaseFragment() {
             requireContext().showToast("Permissions Not Granted")
             // launchSetting()
         }
-       // checkDeviceLocationSettings()
+        checkDeviceLocationSettings()
     }
 
 
